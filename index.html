@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>GraphQL and Perl 6</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+<img src="curl-logo.svg" width="200">
+
+# LibCurl and Perl 6
+
+Curt Tilmes
+
+*Curt.Tilmes@nasa.gov*
+
+*Philadelphia Perl Mongers*
+
+2017-06-12
+
+---
+
+# Introduction
+
+* **`curl`** is a popular command line tool for transferring data with URLs
+
+--
+
+* **`libcurl`** is a C library encompassing the functionality:
+
+    libcurl is a free and easy-to-use client-side URL transfer
+    library, supporting DICT, FILE, FTP, FTPS, Gopher, HTTP, HTTPS,
+    IMAP, IMAPS, LDAP, LDAPS, POP3, POP3S, RTMP, RTSP, SCP, SFTP,
+    SMTP, SMTPS, Telnet and TFTP. libcurl supports SSL certificates,
+    HTTP POST, HTTP PUT, FTP uploading, HTTP form based upload,
+    proxies, cookies, user+password authentication (Basic, Digest,
+    NTLM, Negotiate, Kerberos), file transfer resume, http proxy
+    tunneling and more!
+
+    libcurl is free, thread-safe, IPv6 compatible, feature rich, well
+    supported, fast, thoroughly documented and is already used by many
+    known, big and successful companies.
+
+--
+
+* **`LibCurl`** is a Perl 6 module using the NativeCall capability of
+Perl 6 to interface directly with `libcurl`
+
+---
+
+# Overview
+
+`libcurl` supports two interfaces, both of which are mirrored into
+`LibCurl`:
+
+* **Easy**
+
+- "The easy interface is a synchronous, efficient, quickly used
+and... yes, easy interface for file transfers."
+
+
+- The libcurl bindings are available via a low-level interface in
+`LibCurl::EasyHandle`.  A friendly Perl 6 class makes them available
+through a high level interface as `LibCurl::Easy`.
+
+--
+
+* **Multi**
+
+- "The multi interface is the asynchronous brother in the family and
+it also offers multiple transfers using a single thread and more."
+
+- The multi bindings are similarly available via a low-level interface
+in `LibCurl::MultiHandle`, and wrapped in a high level interface as
+`LibCurl::Multi`.
+
+---
+
+# LibCurl::Easy examples
+```
+use LibCurl::Easy;
+print LibCurl::Easy.new(URL => 'http://example.com').perform.content;
+```
+--
+
+Let's break it up into three phases:
+
+1 `.new()`   Construct a new LibCurl::Easy Object
+
+You can pass in many options (~80 so far implemented) to control the
+nature of the desired transfer.  The only option that is required is
+`URL`.  You can also add options to the handle later.
+
+--
+
+2 `.perform()`  Perform the transfer
+
+--
+
+3 `.content()` Examine the handle after the transfer, in this case,
+return the content.
+
+--
+
+Most methods perform some action, then return the same handle, so you
+can easily chain methods as in this example.
+
+---
+
+# Shortcuts
+
+Because those basic actions are so frequent, there are some shortcuts
+which perform them:
+
+
+```
+use LibCurl::HTTP :subs;
+print get 'http://example.com';
+```
+
+---
+
+# Setting options on an Easy handle
+
+* At construction:
+
+    my $curl = LibCurl::Easy.new(someoption => 'something');
+
+--
+
+* Explicitly with `.setopt()`
+
+    $curl.setopt(someoption => 'something');
+
+--
+
+* Directly with `FALLBACK` method:
+
+    $curl.someoption('something');
+
+--
+
+You can shortcut with `:someoption` or `:!someoption` for Boolean options.
+
+These all return the handle, so you can chain them.
+
+For the most part, these are identical to `libcurl` options
+`CURLOPT_SOMETHING`, just remove the `CURLOPT_` and lowercase.
+
+---
+# Options:
+
+[CAinfo](https://curl.haxx.se/libcurl/c/CURLOPT_CAINFO.html)
+[CApath](https://curl.haxx.se/libcurl/c/CURLOPT_CAPATH.html)
+[URL](https://curl.haxx.se/libcurl/c/CURLOPT_URL.html)
+[accepttimeout-ms](https://curl.haxx.se/libcurl/c/CURLOPT_ACCEPTTIMEOUT_MS.html)
+[accept-encoding](https://curl.haxx.se/libcurl/c/CURLOPT_ACCEPT_ENCODING.html)
+[address-scope](https://curl.haxx.se/libcurl/c/CURLOPT_ADDRESS_SCOPE.html)
+[append](https://curl.haxx.se/libcurl/c/CURLOPT_APPEND.html)
+[autoreferer](https://curl.haxx.se/libcurl/c/CURLOPT_AUTOREFERER.html)
+[buffersize](https://curl.haxx.se/libcurl/c/CURLOPT_BUFFERSIZE.html)
+[certinfo](https://curl.haxx.se/libcurl/c/CURLOPT_CERTINFO.html)
+[cookie](https://curl.haxx.se/libcurl/c/CURLOPT_COOKIE.html)
+[cookiefile](https://curl.haxx.se/libcurl/c/CURLOPT_COOKIEFILE.html)
+[cookiejar](https://curl.haxx.se/libcurl/c/CURLOPT_COOKIEJAR.html)
+[cookielist](https://curl.haxx.se/libcurl/c/CURLOPT_COOKIELIST.html)
+[customrequest](https://curl.haxx.se/libcurl/c/CURLOPT_CUSTOMREQUEST.html)
+[dirlistonly](https://curl.haxx.se/libcurl/c/CURLOPT_DIRLISTONLY.html)
+[failonerror](https://curl.haxx.se/libcurl/c/CURLOPT_FAILONERROR.html)
+[followlocation](https://curl.haxx.se/libcurl/c/CURLOPT_FOLLOWLOCATION.html)
+[forbid-reuse](https://curl.haxx.se/libcurl/c/CURLOPT_FORBID_REUSE.html)
+[fresh-connect](https://curl.haxx.se/libcurl/c/CURLOPT_FRESH_CONNECT.html)
+[ftp-skip-pasv-ip](https://curl.haxx.se/libcurl/c/CURLOPT_FTP_SKIP_PASV_IP.html)
+[ftp-use-eprt](https://curl.haxx.se/libcurl/c/CURLOPT_FTP_USE_EPRT.html)
+[ftp-use-epsv](https://curl.haxx.se/libcurl/c/CURLOPT_FTP_USE_EPSV.html)
+[ftpport](https://curl.haxx.se/libcurl/c/CURLOPT_FTPPORT.html)
+[header](https://curl.haxx.se/libcurl/c/CURLOPT_HEADER.html)
+[http-version](https://curl.haxx.se/libcurl/c/CURLOPT_HTTP_VERSION.html)
+[httpauth](https://curl.haxx.se/libcurl/c/CURLOPT_HTTPAUTH.html)
+[httpget](https://curl.haxx.se/libcurl/c/CURLOPT_HTTPGET.html)
+[httpproxytunnel](https://curl.haxx.se/libcurl/c/CURLOPT_HTTPPROXYTUNNEL.html)
+[infilesize](https://curl.haxx.se/libcurl/c/CURLOPT_INFILESIZE_LARGE.html)
+[low-speed-limit](https://curl.haxx.se/libcurl/c/CURLOPT_LOW_SPEED_LIMIT.html)
+[low-speed-time](https://curl.haxx.se/libcurl/c/CURLOPT_LOW_SPEED_TIME.html)
+[maxconnects](https://curl.haxx.se/libcurl/c/CURLOPT_MAXCONNECTS.html)
+[maxfilesize](https://curl.haxx.se/libcurl/c/CURLOPT_MAXFILESIZE_LARGE.html)
+[maxredirs](https://curl.haxx.se/libcurl/c/CURLOPT_MAXREDIRS.html)
+[max-send-speed](https://curl.haxx.se/libcurl/c/CURLOPT_MAX_SEND_SPEED_LARGE.html)
+[max-recv-speed](https://curl.haxx.se/libcurl/c/CURLOPT_MAX_RECV_SPEED_LARGE.html)
+[netrc](https://curl.haxx.se/libcurl/c/CURLOPT_NETRC.html)
+[nobody](https://curl.haxx.se/libcurl/c/CURLOPT_NOBODY.html)
+[noprogress](https://curl.haxx.se/libcurl/c/CURLOPT_NOPROGRESS.html)
+[nosignal](https://curl.haxx.se/libcurl/c/CURLOPT_NOSIGNAL.html)
+[password](https://curl.haxx.se/libcurl/c/CURLOPT_PASSWORD.html)
+[post](https://curl.haxx.se/libcurl/c/CURLOPT_POST.html)
+[postfields](https://curl.haxx.se/libcurl/c/CURLOPT_COPYPOSTFIELDS.html)
+[postfieldsize](https://curl.haxx.se/libcurl/c/CURLOPT_POSTFIELDSIZE_LARGE.html)
+[protocols](https://curl.haxx.se/libcurl/c/CURLOPT_PROTOCOLS.html)
+[proxy](https://curl.haxx.se/libcurl/c/CURLOPT_PROXY.html)
+[proxyauth](https://curl.haxx.se/libcurl/c/CURLOPT_PROXYAUTH.html)
+[proxyport](https://curl.haxx.se/libcurl/c/CURLOPT_PROXYPORT.html)
+[proxytype](https://curl.haxx.se/libcurl/c/CURLOPT_PROXYTYPE.html)
+[proxyuserpwd](https://curl.haxx.se/libcurl/c/CURLOPT_PROXYUSERPWD.html)
+[range](https://curl.haxx.se/libcurl/c/CURLOPT_RANGE.html)
+[redir-protocols](https://curl.haxx.se/libcurl/c/CURLOPT_REDIR_PROTOCOLS.html)
+[referer](https://curl.haxx.se/libcurl/c/CURLOPT_REFERER.html)
+[resume-from](https://curl.haxx.se/libcurl/c/CURLOPT_RESUME_FROM_LARGE.html)
+[ssl-verifyhost](https://curl.haxx.se/libcurl/c/CURLOPT_SSL_VERIFYHOST.html)
+[ssl-verifypeer](https://curl.haxx.se/libcurl/c/CURLOPT_SSL_VERIFYPEER.html)
+[timecondition](https://curl.haxx.se/libcurl/c/CURLOPT_TIMECONDITION.html)
+[timeout](https://curl.haxx.se/libcurl/c/CURLOPT_TIMEOUT.html)
+[timeout-ms](https://curl.haxx.se/libcurl/c/CURLOPT_TIMEOUT_MS.html)
+[timevalue](https://curl.haxx.se/libcurl/c/CURLOPT_TIMEVALUE.html)
+[unrestricted-auth](https://curl.haxx.se/libcurl/c/CURLOPT_UNRESTRICTED_AUTH.html)
+[use-ssl](https://curl.haxx.se/libcurl/c/CURLOPT_USE_SSL.html)
+[useragent](https://curl.haxx.se/libcurl/c/CURLOPT_USERAGENT.html)
+[username](https://curl.haxx.se/libcurl/c/CURLOPT_USERNAME.html)
+[userpwd](https://curl.haxx.se/libcurl/c/CURLOPT_USERPWD.html)
+[verbose](https://curl.haxx.se/libcurl/c/CURLOPT_VERBOSE.html)
+[wildcardmatch](https://curl.haxx.se/libcurl/c/CURLOPT_WILDCARDMATCH.html)
+
+---
+
+# Options
+
+Some fun ones:
+
+    my $curl = LibCurl::Easy.new(`:verbose`, URL => "http://...");
+When debugging always set `:verbose` and you'll get a dump of the
+actual HTTP transaction, very handy.
+
+--
+
+`:followlocation` = automatically follow a `Location:` header as part
+of an HTTP 3xx response.
+
+--
+
+`:nobody` = Doesn't transfer the body of the request, for HTTP this
+is equivalent to a `HEAD` request.
+
+--
+
+`proxy` = Set a proxy to use for the transfer.
+
+---
+
+# Header Options
+
+There are a few special options that set headers
+([useragent](https://curl.haxx.se/libcurl/c/CURLOPT_USERAGENT.html),
+[referer](https://curl.haxx.se/libcurl/c/CURLOPT_REFERER.html),
+[cookie](https://curl.haxx.se/libcurl/c/CURLOPT_COOKIE.html)), there
+are some extra options for headers: `Content-MD5`, `Content-Type`,
+`Content-Length`, `Host`, `Accept`, `Expect`, `Transfer-Encoding`.
+
+    $curl.Host('somewhere.com');  # or $curl.setopt(Host => 'somewhere.com')
+    $curl.Content-MD5('...');     # or $curl.setopt(Content-MD5 => '...')
+--
+You can also add any other headers you like:
+
+    $curl.set-header(X-My-Header => 'something', X-something => 'foo');
+
+---
+
+# Conclusion
+
+* Perl 6 implementation still in development, please try it out and
+let me know what you like/don't like.
+
+--
+
+* Loads more information available at [graphql.org](http://graphql.org),
+ including many youtube videos of talks.
+
+* Almost all public information about GraphQL fully applies to the
+Perl 6 version.
+
+* The Perl 6 version is described at
+[http://graphql.tilmes.org](http://graphql.tilmes.org)
+
+--
+
+##.center[Thank You!]
+
+.center[*Slides produced with [remark](https://remarkjs.com)*]
+
+    </textarea>
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create({
+        highlightLanguage: 'perl',
+        highlightStyle: 'magula',
+        highlightLines: true,
+        highlightSpans: true
+      });
+    </script>
+  </body>
+</html>
