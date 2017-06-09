@@ -59,11 +59,10 @@ Perl 6 to interface directly with `libcurl`
 
 * **Easy**
 
-- "The easy interface is a synchronous, efficient, quickly used
+  - "The easy interface is a synchronous, efficient, quickly used
 and... yes, easy interface for file transfers."
 
-
-- The libcurl bindings are available via a low-level interface in
+  - The libcurl bindings are available via a low-level interface in
 `LibCurl::EasyHandle`.  A friendly Perl 6 class makes them available
 through a high level interface as `LibCurl::Easy`.
 
@@ -71,12 +70,12 @@ through a high level interface as `LibCurl::Easy`.
 
 * **Multi**
 
-- "The multi interface is the asynchronous brother in the family and
+  - "The multi interface is the asynchronous brother in the family and
 it also offers multiple transfers using a single thread and more."
 
-- The multi bindings are similarly available via a low-level interface
-in `LibCurl::MultiHandle`, and wrapped in a high level interface as
-`LibCurl::Multi`.
+  - The multi bindings are similarly available via a low-level
+interface in `LibCurl::MultiHandle`, and wrapped in a high level
+interface as `LibCurl::Multi`.
 
 ---
 
@@ -89,7 +88,7 @@ print LibCurl::Easy.new(URL => 'http://example.com').perform.content;
 
 Let's break it up into three phases:
 
-1 `.new()`   Construct a new LibCurl::Easy Object
+1 .block[.new()]   Construct a new LibCurl::Easy Object
 
 You can pass in many options (~80 so far implemented) to control the
 nature of the desired transfer.  The only option that is required is
@@ -97,11 +96,11 @@ nature of the desired transfer.  The only option that is required is
 
 --
 
-2 `.perform()`  Perform the transfer
+2 .block[.perform()]  Perform the transfer
 
 --
 
-3 `.content()` Examine the handle after the transfer, in this case,
+3 .block[.content()] Examine the handle after the transfer, in this case,
 return the content.
 
 --
@@ -122,26 +121,41 @@ use LibCurl::HTTP :subs;
 print get 'http://example.com';
 ```
 
+--
+
+There is also a version that decodes as JSON into a data structure:
+
+```
+use LibCurl::HTTP :subs;
+print jget 'http://example.com/something-that-returns-json'<someval>;
+```
+
+
+
 ---
 
 # Setting options on an Easy handle
 
 * At construction:
 
-    my $curl = LibCurl::Easy.new(someoption => 'something');
-
+```
+my $curl = LibCurl::Easy.new(someoption => 'something');
+```
 --
 
 * Explicitly with `.setopt()`
 
-    $curl.setopt(someoption => 'something');
+```
+$curl.setopt(someoption => 'something');
+```
 
 --
 
 * Directly with `FALLBACK` method:
 
-    $curl.someoption('something');
-
+```
+$curl.someoption('something');
+```
 --
 
 You can shortcut with `:someoption` or `:!someoption` for Boolean options.
@@ -229,27 +243,30 @@ For the most part, these are identical to `libcurl` options
 
 Some fun ones:
 
-    my $curl = LibCurl::Easy.new(`:verbose`, URL => "http://...");
+```
+my $curl = LibCurl::Easy.new(`:verbose`, URL => "http://...");
+```
+
 When debugging always set `:verbose` and you'll get a dump of the
 actual HTTP transaction, very handy.
 
 --
 
-`:followlocation` = automatically follow a `Location:` header as part
+**`:followlocation`** = automatically follow a `Location:` header as part
 of an HTTP 3xx response.
 
 --
 
-`:nobody` = Doesn't transfer the body of the request, for HTTP this
+**`:nobody`** = Doesn't transfer the body of the request, for HTTP this
 is equivalent to a `HEAD` request.
 
 --
 
-`proxy` = Set a proxy to use for the transfer.
+**`proxy`** = Set a proxy to use for the transfer.
 
 --
 
-`private` = Store any Perl object you want access to later.
+**`private`** = Store any Perl object you want access to later.
 
 ---
 
@@ -262,23 +279,37 @@ There are a few special options that set headers
 are some extra options for headers: `Content-MD5`, `Content-Type`,
 `Content-Length`, `Host`, `Accept`, `Expect`, `Transfer-Encoding`.
 
-    $curl.Host('somewhere.com');  # or $curl.setopt(Host => 'somewhere.com')
-    $curl.Content-MD5('...');     # or $curl.setopt(Content-MD5 => '...')
+```
+$curl.Host('somewhere.com');  # or $curl.setopt(Host => 'somewhere.com')
+$curl.Content-MD5('...');     # or $curl.setopt(Content-MD5 => '...')
+```
+
 --
+
 You can also add any other headers you like:
 
-    $curl.set-header(X-My-Header => 'something', X-something => 'foo');
+```
+$curl.set-header(X-My-Header => 'something', X-something => 'foo');
+```
+
+--
+
+Clear all ***except*** the libcurl special headers:
+```
+$curl.clear-header;
+```
+
 
 ---
 # Upload/Download
 
-* `download => 'myfile'`
+* .block[download => 'myfile']
 
-* `upload => 'myfile'`
+* .block[upload => 'myfile']
 
-* `send => 'something'`
+* .block[send => 'something']
 
-* `send => $mybuf`
+* .block[send => $mybuf]
 
 If you *don't* specify a download filename, it will stash all incoming
 content in `$curl.buf`.
@@ -302,6 +333,8 @@ say $curl.getinfo(<effective-url response-code>);  # Hash with those keys
 say $curl.getinfo;   # Hash of all info fields
 say $curl.response-code;
 ```
+
+--
 
 Fields currently defined are:
 
@@ -339,21 +372,21 @@ Fields currently defined are:
 [speed-upload](https://curl.haxx.se/libcurl/c/CURLINFO_SPEED_UPLOAD.html)
 [ssl-engines](https://curl.haxx.se/libcurl/c/CURLINFO_SSL_ENGINES.html)
 [total-time](https://curl.haxx.se/libcurl/c/CURLINFO_TOTAL_TIME.html)
-  
+
 ---
 # Received headers
 
-After a transfer, you can also check out the headers retunred by the
+After a transfer, you can also check out the headers returned by the
 server:
 
 ```
-say $curl.receiveheaders<Content-Length>;  # Hash of all headers
-
 say $curl.get-header('Content-Length');
 
-say $curl.Content-Length;  
-```  
-  
+say $curl.receiveheaders<Content-Length>;  # Hash of all headers
+
+say $curl.Content-Length;
+```
+
 ---
 # Errors
 
@@ -376,7 +409,7 @@ say $curl.Content-Length;
 sub debug(LibCurl::Easy $easy, CURL-INFO-TYPE $type, Buf $buf) {...}
 $curl.setopt(debugfunction => &debug);
 ```
-    
+
 Gets called periodically:
 
 - CURLINFO_TEXT
@@ -388,7 +421,7 @@ Gets called periodically:
 - CURLINFO_SSL_DATA_OUT
 
 ---
-    
+
 # Transfer progress
 
 You can enable the simple `curl` progress printing by `:!noprogress`.
@@ -407,7 +440,81 @@ sub xferinfo(LibCurl::Easy $easy, $dltotal, $dlnow, $ultotal, $ulnow)
 {...}
 
 $curl.setopt(xferinfofunction => &xferinfo);
-```    
+```
+
+---
+# Multi-part Form POSTing
+
+```
+my $curl = LibCurl::Easy.new(URL => 'http://...');
+
+# normal field
+$curl.formadd(name => 'fieldname', contents => 'something');
+
+# upload a file from disk, give optional filename or contenttype
+$curl.formadd(name => 'fieldname', file => 'afile.txt',
+              filename => 'alternate.name.txt',
+              contenttype => 'image/jpeg');
+
+# Send a Blob of contents, but as a file with a filename
+$curl.formadd(name => 'fieldname', buffer => 'some.file.name.txt',
+              bufferptr => "something".encode);
+
+$curl.perform;
+```
+
+---
+# Multi Interface
+
+Construct an `Easy` handle for each desired transfer, then `perform`
+them all simultaneously.
+
+```
+use LibCurl::Easy;
+use LibCurl::Multi;
+
+my $curl1 = LibCurl::Easy.new(:verbose, :followlocation,
+                     URL => 'http://example.com',
+                     download => './myfile1.html');
+
+my $curl2 = LibCurl::Easy.new(:verbose, :followlocation,
+                     URL => 'http://example.com',
+                     download => './myfile2.html');
+
+LibCurl:Multi.new.add-handle($curl1, $curl2).perform;
+
+say $curl1.statusline;
+say $curl2.statusline;
+```
+
+---
+# Multi Interface Async
+
+```
+use LibCurl::Easy;
+use LibCurl::Multi;
+
+my $curl1 = LibCurl::Easy.new(:followlocation,
+                              URL => 'http://example.com',
+                              download => 'myfile1.html');
+
+my $curl2 = LibCurl::Easy.new(:followlocation,
+                              URL => 'http://example.com',
+                              download => 'myfile2.html');
+
+sub callback(LibCurl::Easy $easy, Exception $e)
+{
+    die $e if $e;
+    say $easy.response-code;
+    say $easy.statusline;
+}
+
+my $multi = LibCurl::Multi.new(callback => &callback);
+
+$multi.add-handle($curl1, $curl2);
+
+$multi.perform;
+```
 
 ---
 # Conclusion
@@ -415,16 +522,8 @@ $curl.setopt(xferinfofunction => &xferinfo);
 * Perl 6 implementation still in development, please try it out and
 let me know what you like/don't like.
 
---
-
-* Loads more information available at [graphql.org](http://graphql.org),
- including many youtube videos of talks.
-
-* Almost all public information about GraphQL fully applies to the
-Perl 6 version.
-
-* The Perl 6 version is described at
-[http://graphql.tilmes.org](http://graphql.tilmes.org)
+* Multi interface is in particular could be extended to support a more
+  perl6-ish interface.
 
 --
 

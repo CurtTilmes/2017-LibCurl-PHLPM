@@ -15,6 +15,13 @@ h1, h2, h3 {
     padding: 9px;
 }
 
+.block {
+    background-color: #E1B7B4;
+    font-family: 'Ubuntu Mono';
+    border-radius: 7px;
+    padding: 2px;
+}
+
 .hljs.perl {
     background-color: #E6E6E6;
 }
