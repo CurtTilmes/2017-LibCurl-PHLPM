@@ -100,8 +100,9 @@ nature of the desired transfer.  The only option that is required is
 
 --
 
-3 .block[.content()] Examine the handle after the transfer, in this case,
-return the content.
+3 .block[.content()] Examine the handle after the transfer, and, in
+this case, return the content.  This is optional.  For an upload
+(PUT/POST, or FTP upload), you might check status.
 
 --
 
@@ -127,7 +128,7 @@ There is also a version that decodes as JSON into a data structure:
 
 ```
 use LibCurl::HTTP :subs;
-print jget 'http://example.com/something-that-returns-json'<someval>;
+print jget('http://example.com/something-that-returns-json')<someval>;
 ```
 
 
